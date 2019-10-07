@@ -58,32 +58,38 @@ functions[\fooloopRec] = {
     counter = counter + 1;
     if(counter > recBufs.lastIndex, {counter = 0});
     ~server.makeBundle(lat, {
-    recSynth = Synth(\fooRecord, [bufnum: (recBufs @ counter)], ~server);
-    recording = true;
-    })
+        recSynth = Synth(\fooRecord, [bufnum: (recBufs @ counter)], ~server);
+        recording = true;
+    });
 };
+
 // add new buffer and free synth
 functions[\fooloopAdd] = {
     var name = bufnamePrefix ++ counter.asString;
     if(recording) {
-    ~server.makeBundle(lat, {
-    ~dirt.soundLibrary.addBuffer(name, (recBufs @@ counter), false );
-    recSynth.free;
-    recording = false;
-    })
+        ~server.makeBundle(lat, {
+            ~dirt.soundLibrary.addBuffer(name, (recBufs @@ counter), false );
+            recSynth.free;
+            recording = false;
+        });
     }
 };
+
 // reset all buffers
 functions[\fooloopReset] = {
     "reset".postln;
     ~recBufs.do(_.free);
     ~recBufs = recBufs = { Buffer.alloc(~dirt.server, ~dirt.server.sampleRate * maxTime, soundIn.size) } ! numBuffers;
-    for(0,numBuffers-1, { |i|  ~dirt.soundLibrary.addBuffer(bufnamePrefix++i, (recBufs @@ i), false )});
+    for(0,numBuffers-1, { |i|
+        ~dirt.soundLibrary.addBuffer(bufnamePrefix++i, (recBufs @@ i), false )}
+    );
     counter = 0;
     recording = false;
 };
 
 // add these functions to the dirt soundLibrary
-functions.keysValuesDo{ |key, func|  ~dirt.soundLibrary.addSynth( key, (play: func)) };
+functions.keysValuesDo{ |key, func|
+    ~dirt.soundLibrary.addSynth(key, (play: func));
+};
 
 )
